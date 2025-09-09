@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Watering Robot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .robot-status { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .water-tank { background: linear-gradient(45deg, #2196F3, #1976D2); }
+        .plant-care { background: linear-gradient(45deg, #FF9800, #F57C00); }
+
+        .card h3 {
+            color: #333;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 10px 0;
+        }
+
+        .status-online {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-offline {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .water-level { background: linear-gradient(90deg, #2196F3, #64B5F6); }
+        .battery-level { background: linear-gradient(90deg, #4CAF50, #81C784); }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .plant-list {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .plant-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .plant-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .plant-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 15px;
+        }
+
+        .plant-healthy { background: #e8f5e8; color: #2e7d32; }
+        .plant-needs-water { background: #fff3e0; color: #ef6c00; }
+        .plant-critical { background: #ffebee; color: #c62828; }
+
+        .plant-info {
+            flex: 1;
+        }
+
+        .plant-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .plant-status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .moisture-level {
+            width: 60px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .log-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-size: 0.9rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Smart Plant Care Robot</h1>
+            <p>Automated plant watering system - Keep your plants happy while you're away!</p>
+        </div>
+
+        <div class="dashboard">
+            <!-- Robot Status Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon robot-status">🤖</div>
+                    <h3>Robot Status</h3>
+                </div>
+                <div class="status-indicator status-online" id="robotStatus">
+                    ● Online - Ready to work
+                </div>
+                <div>
+                    <strong>Current Activity:</strong>
+                    <p id="currentActivity">Patrolling plants - Living room</p>
+                </div>
+                <div>
+                    <strong>Battery Level:</strong>
+                    <div class="progress-bar">
+                        <div class="progress-fill battery-level" style="width: 85%" id="batteryBar"></div>
+                    </div>
+                    <span id="batteryLevel">85%</span>
+                </div>
+            </div>
+
+            <!-- Water Tank Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon water-tank">💧</div>
+                    <h3>Water System</h3>
+                </div>
+                <div>
+                    <strong>Water Level:</strong>
+                    <div class="progress-bar">
+                        <div class="progress-fill water-level" style="width: 60%" id="waterBar"></div>
+                    </div>
+                    <span id="waterLevel">60% (1.2L remaining)</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>Last Refill:</strong>
+                    <p>2 hours ago</p>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-primary" onclick="refillTank()">
+                        🔧 Refill Tank
+                    </button>
+                </div>
+            </div>
+
+            <!-- Plant Care Controls -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon plant-care">🌱</div>
+                    <h3>Plant Care Controls</h3>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-success" onclick="startPatrol()">
+                        ▶️ Start Patrol
+                    </button>
+                    <button class="btn btn-warning" onclick="returnHome()">
+                        🏠 Return Home
+                    </button>
+                    <button class="btn btn-primary" onclick="waterNow()">
+                        💧 Water Now
+                    </button>
+                    <button class="btn btn-danger" onclick="emergencyStop()">
+                        ⏹️ Stop
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plant Status List -->
+        <div class="plant-list">
+            <h3 style="margin-bottom: 20px; color: #333;">🌿 Plant Status Monitor</h3>
+            
+            <div class="plant-item">
+                <div class="plant-icon plant-healthy">🌿</div>
+                <div class="plant-info">
+                    <div class="plant-name">Fiddle Leaf Fig</div>
+                    <div class="plant-status">Living Room • Last watered: 1 day ago</div>
+                </div>
+                <div class="moisture-level" style="color: #2e7d32;">78%</div>
+            </div>
+
+            <div class="plant-item">
+                <div class="plant-icon plant-needs-water">🌱</div>
+                <div class="plant-info">
+                    <div class="plant-name">Snake Plant</div>
+                    <div class="plant-status">Bedroom • Needs watering soon</div>
+                </div>
+                <div class="moisture-level" style="color: #ef6c00;">35%</div>
+            </div>
+
+            <div class="plant-item">
+                <div class="plant-icon plant-critical">🥀</div>
+                <div class="plant-info">
+                    <div class="plant-name">Peace Lily</div>
+                    <div class="plant-status">Kitchen • Critical - Water immediately!</div>
+                </div>
+                <div class="moisture-level" style="color: #c62828;">12%</div>
+            </div>
+
+            <div class="plant-item">
+                <div class="plant-icon plant-healthy">🌿</div>
+                <div class="plant-info">
+                    <div class="plant-name">Monstera</div>
+                    <div class="plant-status">Living Room • Healthy and happy</div>
+                </div>
+                <div class="moisture-level" style="color: #2e7d32;">65%</div>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="log-container">
+            <h3 style="margin-bottom: 15px; color: #333;">📝 Recent Activity</h3>
+            <div class="log-item">
+                <strong>14:30</strong> - Robot watered Peace Lily (Kitchen) - 200ml delivered
+            </div>
+            <div class="log-item">
+                <strong>13:45</strong> - Patrol completed - All plants checked
+            </div>
+            <div class="log-item">
+                <strong>12:15</strong> - Robot returned to charging station
+            </div>
+            <div class="log-item">
+                <strong>11:30</strong> - Started automatic patrol routine
+            </div>
+            <div class="log-item">
+                <strong>10:45</strong> - Water tank refilled to 100%
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        Action completed successfully!
+    </div>
+
+    <script>
+        // Simulate real-time data updates
+        let waterLevel = 60;
+        let batteryLevel = 85;
+        let isOnline = true;
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function updateWaterLevel(newLevel) {
+            waterLevel = newLevel;
+            document.getElementById('waterBar').style.width = newLevel + '%';
+            document.getElementById('waterLevel').textContent = newLevel + '% (' + (newLevel * 2 / 100).toFixed(1) + 'L remaining)';
+        }
+
+        function updateBatteryLevel(newLevel) {
+            batteryLevel = newLevel;
+            document.getElementById('batteryBar').style.width = newLevel + '%';
+            document.getElementById('batteryLevel').textContent = newLevel + '%';
+        }
+
+        function updateRobotActivity(activity) {
+            document.getElementById('currentActivity').textContent = activity;
+        }
+
+        // Control functions
+        function startPatrol() {
+            showNotification('🤖 Robot patrol started!');
+            updateRobotActivity('Starting patrol route...');
+            
+            // Simulate patrol progress
+            setTimeout(() => {
+                updateRobotActivity('Checking plants in living room');
+            }, 2000);
+            
+            setTimeout(() => {
+                updateRobotActivity('Moving to bedroom plants');
+            }, 5000);
+        }
+
+        function returnHome() {
+            showNotification('🏠 Robot returning to home station');
+            updateRobotActivity('Returning to charging station...');
+            
+            setTimeout(() => {
+                updateRobotActivity('Docked at home station');
+            }, 3000);
+        }
+
+        function waterNow() {
+            showNotification('💧 Emergency watering activated!');
+            updateRobotActivity('Watering current plant...');
+            
+            // Simulate water usage
+            setTimeout(() => {
+                const newWaterLevel = Math.max(0, waterLevel - 10);
+                updateWaterLevel(newWaterLevel);
+                updateRobotActivity('Watering completed');
+            }, 2000);
+        }
+
+        function emergencyStop() {
+            showNotification('⏹️ Robot stopped immediately');
+            updateRobotActivity('Emergency stop activated - Robot halted');
+        }
+
+        function refillTank() {
+            showNotification('🔧 Please refill the water tank manually');
+            
+            // Simulate refill after delay
+            setTimeout(() => {
+                updateWaterLevel(100);
+                showNotification('✅ Water tank refilled successfully!');
+            }, 5000);
+        }
+
+        // Simulate periodic updates
+        setInterval(() => {
+            // Slowly decrease battery
+            if (batteryLevel > 0) {
+                batteryLevel = Math.max(0, batteryLevel - 0.1);
+                updateBatteryLevel(Math.round(batteryLevel));
+            }
+            
+            // Slowly decrease water
+            if (waterLevel > 0 && Math.random() > 0.95) {
+                waterLevel = Math.max(0, waterLevel - 1);
+                updateWaterLevel(waterLevel);
+            }
+        }, 10000);
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate cards on load
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
