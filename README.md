@@ -11,6 +11,12 @@
             box-sizing: border-box;
         }
 
+html, body {
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
+  overflow-x: hidden;
+}
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
